@@ -1,0 +1,360 @@
+// 导入变量和混合
+@import './variables.scss';
+@import './mixins.scss';
+
+// 全局重置
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  line-height: $line-height-normal;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  font-family: $font-family-sans;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  color: $text-primary;
+  background-color: $background-primary;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// 标题样式
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-sans;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+  margin-bottom: $spacing-md;
+}
+
+h1 {
+  font-size: $font-size-4xl;
+  @include font-size($font-size-4xl);
+}
+
+h2 {
+  font-size: $font-size-3xl;
+  @include font-size($font-size-3xl);
+}
+
+h3 {
+  font-size: $font-size-2xl;
+  @include font-size($font-size-2xl);
+}
+
+h4 {
+  font-size: $font-size-xl;
+}
+
+h5 {
+  font-size: $font-size-lg;
+}
+
+h6 {
+  font-size: $font-size-md;
+}
+
+// 段落样式
+p {
+  margin-bottom: $spacing-md;
+  line-height: $line-height-relaxed;
+}
+
+// 链接样式
+a {
+  color: $primary-color;
+  text-decoration: none;
+  @include transition;
+  
+  &:hover {
+    color: $secondary-color;
+    text-decoration: underline;
+  }
+  
+  &:focus {
+    outline: 2px solid rgba($primary-color, 0.3);
+    outline-offset: 2px;
+  }
+}
+
+// 列表样式
+ul, ol {
+  margin-bottom: $spacing-md;
+  padding-left: $spacing-xl;
+}
+
+li {
+  margin-bottom: $spacing-xs;
+  line-height: $line-height-relaxed;
+}
+
+// 表单元素
+input, button, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+textarea,
+select {
+  @include input-base;
+}
+
+// 按钮
+.btn {
+  @include button-base;
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-base;
+  
+  &-primary {
+    @include button-primary;
+  }
+  
+  &-secondary {
+    @include button-secondary;
+  }
+  
+  &-sm {
+    padding: $spacing-xs $spacing-md;
+    font-size: $font-size-sm;
+  }
+  
+  &-lg {
+    padding: $spacing-md $spacing-xl;
+    font-size: $font-size-lg;
+  }
+}
+
+// 卡片
+.card {
+  @include card;
+  padding: $spacing-lg;
+  margin-bottom: $spacing-lg;
+}
+
+// 容器
+.container {
+  @include container;
+}
+
+// 网格
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -$grid-gutter / 2;
+  margin-left: -$grid-gutter / 2;
+  
+  > * {
+    flex-shrink: 0;
+    width: 100%;
+    max-width: 100%;
+    padding-right: $grid-gutter / 2;
+    padding-left: $grid-gutter / 2;
+  }
+}
+
+// 通用工具类
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.font-bold {
+  font-weight: $font-weight-bold;
+}
+
+.font-medium {
+  font-weight: $font-weight-medium;
+}
+
+.text-primary {
+  color: $primary-color;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.text-muted {
+  color: $text-tertiary;
+}
+
+.bg-white {
+  background-color: $white;
+}
+
+.bg-gray {
+  background-color: $gray-100;
+}
+
+.p-0 {
+  padding: 0;
+}
+
+.m-0 {
+  margin: 0;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mt-0 {
+  margin-top: 0;
+}
+
+// 响应式工具类
+@include generate-utility-classes;
+
+// 动画
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: $gray-100;
+  border-radius: $border-radius-full;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $gray-400;
+  border-radius: $border-radius-full;
+  
+  &:hover {
+    background: $gray-500;
+  }
+}
+
+// 选择文本样式
+::selection {
+  background-color: rgba($primary-color, 0.2);
+  color: $text-primary;
+}
+
+// 焦点样式
+*:focus {
+  outline: 2px solid $primary-color;
+  outline-offset: 2px;
+}
+
+// 禁用状态
+[disabled] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+// 打印样式
+@include print-styles;
+
+// 加载动画
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid $gray-200;
+  border-radius: 50%;
+  border-top-color: $primary-color;
+  animation: spin 1s ease-in-out infinite;
+}
+
+// 骨架屏
+.skeleton {
+  background: linear-gradient(90deg, $gray-200 25%, $gray-300 50%, $gray-200 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+// 无障碍
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+// 高对比度模式
+@media (prefers-contrast: high) {
+  body {
+    color: $black;
+    background-color: $white;
+  }
+  
+  a {
+    color: $primary-color;
+    text-decoration: underline;
+  }
+}
+
+// 暗色模式（预留）
+@media (prefers-color-scheme: dark) {
+  // 暗色模式样式将在此处添加
+}

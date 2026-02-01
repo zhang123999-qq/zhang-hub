@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodeSecHub - 编程与网络安全社区</title>
+    
+    <!-- 网站描述 -->
+    <meta name="description" content="专注编程与网络安全的技术社区">
+    <meta name="keywords" content="编程,网络安全,技术社区,CodeSecHub">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="CodeSecHub - 编程与网络安全社区">
+    <meta property="og:description" content="专注编程与网络安全的技术社区">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://codesechub.com">
+    
+    <!-- 安全头信息 -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    
+    <!-- 图标 -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    
+    <!-- 预加载关键资源 -->
+    <link rel="preload" href="/src/assets/fonts/Inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="/src/assets/css/global.css" as="style">
+    
+    <!-- 全局样式 -->
+    <link rel="stylesheet" href="/src/assets/css/global.css">
+</head>
+<body>
+    <noscript>
+        <div class="noscript-warning">
+            <h2>请启用JavaScript</h2>
+            <p>CodeSecHub 需要 JavaScript 才能正常运行。请启用浏览器的 JavaScript 功能。</p>
+        </div>
+    </noscript>
+    
+    <!-- 应用根容器 -->
+    <div id="app"></div>
+    
+    <!-- 应用脚本 -->
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

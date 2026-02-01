@@ -1,0 +1,1086 @@
+# 🔌 API文档
+
+## 文档说明
+- **API版本**: v1.0
+- **基础URL**: `https://api.codesechub.com/api/v1`
+- **认证方式**: JWT Bearer Token
+- **数据格式**: JSON
+- **字符编码**: UTF-8
+
+## 认证方式
+### JWT认证
+```yaml
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        使用JWT令牌进行认证。
+        在登录后获取access_token，然后在请求头中添加：
+        Authorization: Bearer <access_token>
+```
+
+## 全局响应定义
+```yaml
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: 错误代码
+          example: 400
+        message:
+          type: string
+          description: 错误消息
+          example: "请求参数错误"
+        details:
+          type: object
+          description: 错误详情
+          nullable: true
+    
+    PaginatedResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+          description: 总记录数
+          example: 100
+        next:
+          type: string
+          description: 下一页URL
+          nullable: true
+          example: "http://api.codesechub.com/api/v1/articles?page=2"
+        previous:
+          type: string
+          description: 上一页URL
+          nullable: true
+          example: null
+        results:
+          type: array
+          description: 数据列表
+```
+
+## 用户认证API
+
+### 1. 用户注册
+```yaml
+paths:
+  /auth/register/:
+    post:
+      tags:
+        - 认证
+      summary: 用户注册
+      description: 注册新用户账户
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+                - password2
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  description: 用户名
+                  example: "newuser"
+                email:
+                  type: string
+                  format: email
+                  description: 邮箱地址
+                  example: "user@example.com"
+                password:
+                  type: string
+                  minLength: 8
+                  description: 密码
+                  example: "StrongPassword123!"
+                password2:
+                  type: string
+                  description: 确认密码
+                  example: "StrongPassword123!"
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: "注册成功"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+                      access:
+                        type: string
+                        description: JWT访问令牌
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+                      refresh:
+                        type: string
+                        description: JWT刷新令牌
+                        example: "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+        '400':
+          description: 注册失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+```
+
+### 2. 用户登录
+```yaml
+paths:
+  /auth/login/:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      description: 使用用户名和密码登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  description: 用户名或邮箱
+                  example: "admin"
+                password:
+                  type: string
+                  description: 密码
+                  example: "Admin123!"
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "登录成功"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/components/schemas/UserProfile'
+                      access:
+                        type: string
+                        description: JWT访问令牌
+                      refresh:
+                        type: string
+                        description: JWT刷新令牌
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+```
+
+## 用户管理API
+
+### 1. 获取当前用户信息
+```yaml
+paths:
+  /users/me/:
+    get:
+      tags:
+        - 用户
+      summary: 获取当前用户信息
+      description: 获取当前登录用户的详细信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+```
+
+### 2. 更新用户信息
+```yaml
+paths:
+  /users/me/:
+    patch:
+      tags:
+        - 用户
+      summary: 更新用户信息
+      description: 更新当前登录用户的信息
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                bio:
+                  type: string
+                  description: 个人简介
+                  maxLength: 500
+                  example: "网络安全研究员"
+                github_url:
+                  type: string
+                  format: uri
+                  description: GitHub链接
+                  example: "https://github.com/username"
+                skills:
+                  type: array
+                  items:
+                    type: string
+                  description: 技能标签
+                  example: ["Python", "渗透测试", "漏洞分析"]
+                avatar:
+                  type: string
+                  format: uri
+                  description: 头像URL
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "更新成功"
+                  data:
+                    $ref: '#/components/schemas/UserProfile'
+```
+
+## 博客系统API
+
+### 1. 获取文章列表
+```yaml
+paths:
+  /blog/articles/:
+    get:
+      tags:
+        - 博客
+      summary: 获取文章列表
+      description: 获取文章列表，支持分页、搜索、过滤和排序
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+          description: 页码
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 100
+          description: 每页数量
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词
+        - name: category
+          in: query
+          schema:
+            type: string
+          description: 分类slug
+        - name: tag
+          in: query
+          schema:
+            type: string
+          description: 标签slug
+        - name: author
+          in: query
+          schema:
+            type: string
+          description: 作者用户名
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published, archived]
+          description: 文章状态
+        - name: ordering
+          in: query
+          schema:
+            type: string
+            enum: [created_at, -created_at, updated_at, -updated_at, view_count, -view_count]
+          description: 排序字段
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/PaginatedResponse'
+                    properties:
+                      results:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ArticleList'
+```
+
+### 2. 创建文章
+```yaml
+paths:
+  /blog/articles/:
+    post:
+      tags:
+        - 博客
+      summary: 创建文章
+      description: 创建新的博客文章
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - title
+                - content
+                - category
+              properties:
+                title:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                  description: 文章标题
+                  example: "如何防护XSS攻击"
+                content:
+                  type: string
+                  description: 文章内容（Markdown格式）
+                  example: "# XSS防护指南\n\n跨站脚本攻击..."
+                summary:
+                  type: string
+                  maxLength: 500
+                  description: 文章摘要
+                  example: "本文介绍XSS攻击的原理和防护方法"
+                category:
+                  type: integer
+                  description: 分类ID
+                  example: 1
+                tags:
+                  type: array
+                  items:
+                    type: integer
+                  description: 标签ID列表
+                  example: [1, 2, 3]
+                cover_image:
+                  type: string
+                  format: uri
+                  description: 封面图片URL
+                status:
+                  type: string
+                  enum: [draft, review, published]
+                  default: draft
+                  description: 文章状态
+                is_featured:
+                  type: boolean
+                  default: false
+                  description: 是否推荐
+                allow_comments:
+                  type: boolean
+                  default: true
+                  description: 是否允许评论
+                meta_title:
+                  type: string
+                  description: SEO标题
+                meta_description:
+                  type: string
+                  description: SEO描述
+                meta_keywords:
+                  type: string
+                  description: SEO关键词
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: "文章创建成功"
+                  data:
+                    $ref: '#/components/schemas/ArticleDetail'
+```
+
+## 数据模型定义
+
+```yaml
+components:
+  schemas:
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 用户ID
+          example: 1
+        username:
+          type: string
+          description: 用户名
+          example: "security_expert"
+        email:
+          type: string
+          format: email
+          description: 邮箱
+          example: "expert@example.com"
+        role:
+          type: string
+          enum: [visitor, user, researcher, admin]
+          description: 用户角色
+          example: "researcher"
+        bio:
+          type: string
+          nullable: true
+          description: 个人简介
+          example: "网络安全研究员"
+        github_url:
+          type: string
+          format: uri
+          nullable: true
+          description: GitHub链接
+          example: "https://github.com/security_expert"
+        skills:
+          type: array
+          items:
+            type: string
+          description: 技能列表
+          example: ["Python", "渗透测试", "漏洞分析"]
+        reputation:
+          type: integer
+          description: 声望值
+          example: 100
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          description: 头像URL
+        is_active:
+          type: boolean
+          description: 是否活跃
+          example: true
+        date_joined:
+          type: string
+          format: date-time
+          description: 注册时间
+    
+    ArticleList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 文章ID
+          example: 1
+        title:
+          type: string
+          description: 文章标题
+          example: "XSS攻击与防护"
+        slug:
+          type: string
+          description: URL标识
+          example: "xss-attack-and-defense"
+        summary:
+          type: string
+          description: 文章摘要
+          example: "本文介绍XSS攻击的原理和防护方法..."
+        author:
+          $ref: '#/components/schemas/UserSimple'
+        category:
+          $ref: '#/components/schemas/Category'
+        tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/Tag'
+        cover_image:
+          type: string
+          format: uri
+          nullable: true
+          description: 封面图片
+        status:
+          type: string
+          enum: [draft, review, published, archived]
+          description: 文章状态
+          example: "published"
+        is_featured:
+          type: boolean
+          description: 是否推荐
+          example: false
+        view_count:
+          type: integer
+          description: 浏览次数
+          example: 150
+        like_count:
+          type: integer
+          description: 点赞数
+          example: 25
+        comment_count:
+          type: integer
+          description: 评论数
+          example: 8
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: 发布时间
+        read_time:
+          type: integer
+          description: 阅读时间（分钟）
+          example: 5
+    
+    ArticleDetail:
+      allOf:
+        - $ref: '#/components/schemas/ArticleList'
+        - type: object
+          properties:
+            content:
+              type: string
+              description: 文章内容（Markdown格式）
+            meta_title:
+              type: string
+              nullable: true
+              description: SEO标题
+            meta_description:
+              type: string
+              nullable: true
+              description: SEO描述
+            meta_keywords:
+              type: string
+              nullable: true
+              description: SEO关键词
+    
+    UserSimple:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 用户ID
+        username:
+          type: string
+          description: 用户名
+        avatar:
+          type: string
+          format: uri
+          nullable: true
+          description: 头像URL
+    
+    Category:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 分类ID
+        name:
+          type: string
+          description: 分类名称
+        slug:
+          type: string
+          description: URL标识
+        description:
+          type: string
+          nullable: true
+          description: 分类描述
+        icon:
+          type: string
+          description: 图标名称
+        article_count:
+          type: integer
+          description: 文章数量
+    
+    Tag:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 标签ID
+        name:
+          type: string
+          description: 标签名称
+        slug:
+          type: string
+          description: URL标识
+        color:
+          type: string
+          description: 标签颜色
+        article_count:
+          type: integer
+          description: 文章数量
+
+    ThreadList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 帖子ID
+        title:
+          type: string
+          description: 帖子标题
+        slug:
+          type: string
+          description: URL标识
+        author:
+          $ref: '#/components/schemas/UserSimple'
+        category:
+          $ref: '#/components/schemas/ForumCategory'
+        status:
+          type: string
+          enum: [normal, sticky, featured, closed]
+          description: 帖子状态
+        view_count:
+          type: integer
+          description: 浏览数
+        reply_count:
+          type: integer
+          description: 回复数
+        like_count:
+          type: integer
+          description: 点赞数
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新时间
+        last_reply_at:
+          type: string
+          format: date-time
+          description: 最后回复时间
+        last_reply_by:
+          $ref: '#/components/schemas/UserSimple'
+          nullable: true
+          description: 最后回复用户
+    
+    ResourceList:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: 资源ID
+        title:
+          type: string
+          description: 资源标题
+        description:
+          type: string
+          description: 资源描述
+        author:
+          $ref: '#/components/schemas/UserSimple'
+        category:
+          $ref: '#/components/schemas/ResourceCategory'
+        resource_type:
+          type: string
+          enum: [tool, document, video, code, other]
+          description: 资源类型
+        download_url:
+          type: string
+          format: uri
+          nullable: true
+          description: 下载链接
+        file:
+          type: string
+          format: uri
+          nullable: true
+          description: 文件URL
+        download_count:
+          type: integer
+          description: 下载次数
+        rating_average:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: 平均评分
+        rating_count:
+          type: integer
+          description: 评分人数
+        tags:
+          type: array
+          items:
+            type: string
+          description: 资源标签
+        version:
+          type: string
+          nullable: true
+          description: 版本号
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+```
+
+## API错误码定义
+
+```yaml
+components:
+  responses:
+    BadRequest:
+      description: 请求参数错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 400
+              message: "请求参数错误"
+              details:
+                username: ["该用户名已存在"]
+                email: ["该邮箱已被注册"]
+    
+    Unauthorized:
+      description: 未认证或认证失败
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 401
+              message: "认证失败，请检查用户名和密码"
+    
+    Forbidden:
+      description: 权限不足
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 403
+              message: "您没有权限执行此操作"
+    
+    NotFound:
+      description: 资源不存在
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 404
+              message: "请求的资源不存在"
+    
+    TooManyRequests:
+      description: 请求过于频繁
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 429
+              message: "请求过于频繁，请稍后再试"
+              details:
+                retry_after: 60
+    
+    InternalServerError:
+      description: 服务器内部错误
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+            example:
+              code: 500
+              message: "服务器内部错误，请稍后再试"
+```
+
+## 请求示例
+
+```yaml
+paths:
+  /blog/articles/{slug}/:
+    get:
+      tags:
+        - 博客
+      summary: 获取文章详情
+      description: 根据slug获取文章详细信息
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 文章slug
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  data:
+                    $ref: '#/components/schemas/ArticleDetail'
+              examples:
+                success:
+                  summary: 成功响应示例
+                  value:
+                    code: 200
+                    data:
+                      id: 1
+                      title: "XSS攻击与防护"
+                      slug: "xss-attack-and-defense"
+                      content: "# XSS攻击\n\n跨站脚本攻击..."
+                      summary: "本文介绍XSS攻击的原理和防护方法"
+                      author:
+                        id: 1
+                        username: "security_expert"
+                        avatar: "https://example.com/avatar.jpg"
+                      category:
+                        id: 1
+                        name: "Web安全"
+                        slug: "web-security"
+                      tags:
+                        - id: 1
+                          name: "XSS"
+                          slug: "xss"
+                          color: "#ff6b6b"
+                      view_count: 150
+                      like_count: 25
+                      comment_count: 8
+                      created_at: "2023-10-01T10:00:00Z"
+                      updated_at: "2023-10-01T10:00:00Z"
+                      published_at: "2023-10-01T10:00:00Z"
+                      read_time: 5
+        '404':
+          $ref: '#/components/responses/NotFound'
+```
+
+## API使用示例代码
+
+```yaml
+x-code-samples:
+  - lang: JavaScript
+    label: 'JavaScript (Fetch)'
+    source: |
+      // 用户登录
+      async function login(username, password) {
+        const response = await fetch('https://api.codesechub.com/api/v1/auth/login/', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            username: username,
+            password: password
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.code === 200) {
+          // 保存token
+          localStorage.setItem('access_token', data.data.access);
+          localStorage.setItem('refresh_token', data.data.refresh);
+          return data.data.user;
+        } else {
+          throw new Error(data.message);
+        }
+      }
+      
+      // 获取文章列表
+      async function getArticles(page = 1, pageSize = 10) {
+        const token = localStorage.getItem('access_token');
+        
+        const response = await fetch(
+          `https://api.codesechub.com/api/v1/blog/articles/?page=${page}&page_size=${pageSize}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        );
+        
+        return await response.json();
+      }
+
+  - lang: Python
+    label: 'Python (requests)'
+    source: |
+      import requests
+      
+      # 用户登录
+      def login(username, password):
+          url = "https://api.codesechub.com/api/v1/auth/login/"
+          data = {
+              "username": username,
+              "password": password
+          }
+          
+          response = requests.post(url, json=data)
+          result = response.json()
+          
+          if result["code"] == 200:
+              token = result["data"]["access"]
+              return token
+          else:
+              raise Exception(result["message"])
+      
+      # 创建文章
+      def create_article(token, title, content, category_id):
+          url = "https://api.codesechub.com/api/v1/blog/articles/"
+          headers = {
+              "Authorization": f"Bearer {token}",
+              "Content-Type": "application/json"
+          }
+          data = {
+              "title": title,
+              "content": content,
+              "category": category_id,
+              "status": "published"
+          }
+          
+          response = requests.post(url, headers=headers, json=data)
+          return response.json()
+
+  - lang: cURL
+    label: 'cURL'
+    source: |
+      # 用户登录
+      curl -X POST "https://api.codesechub.com/api/v1/auth/login/" \
+        -H "Content-Type: application/json" \
+        -d '{"username": "admin", "password": "Admin123!"}'
+      
+      # 获取文章列表（使用token）
+      curl -X GET "https://api.codesechub.com/api/v1/blog/articles/?page=1&page_size=10" \
+        -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+      
+      # 创建文章
+      curl -X POST "https://api.codesechub.com/api/v1/blog/articles/" \
+        -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d '{
+          "title": "测试文章",
+          "content": "测试内容",
+          "category": 1,
+          "tags": [1, 2]
+        }'
+```
+
+## WebSocket API文档
+
+```yaml
+paths:
+  /ws/notifications/:
+    websocket:
+      tags:
+        - 实时通信
+      summary: 通知WebSocket连接
+      description: 建立WebSocket连接接收实时通知
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JWT访问令牌
+      message:
+        oneOf:
+          - schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  enum: [notification, message, system]
+                  description: 消息类型
+                data:
+                  type: object
+                  description: 消息数据
+              example:
+                type: notification
+                data:
+                  id: 1
+                  title: "新评论"
+                  content: "用户A评论了您的文章"
+                  created_at: "2023-10-01T10:00:00Z"
+                  read: false
+```
+
+## API版本控制
+
+```yaml
+info:
+  title: CodeSecHub API
+  version: v1.0
+  description: |
+    CodeSecHub API文档
+    
+    ## 版本控制
+    当前版本：v1.0
+    
+    ### 版本策略
+    - URL路径版本控制：/api/v1/
+    - 向后兼容原则
+    - 弃用通知提前3个月
+    
+    ### 弃用计划
+    | 版本 | 状态 | 弃用日期 | 停止支持日期 |
+    |------|------|----------|--------------|
+    | v0.9 | 已弃用 | 2023-06-01 | 2023-12-01 |
+    | v1.0 | 当前 | - | 2024-12-01 |
+    
+    ### 升级指南
+    从v0.9升级到v1.0：
+    1. 将API URL从 `/api/v0.9/` 改为 `/api/v1/`
+    2. 更新认证方式为JWT
+    3. 调整响应格式
+```
